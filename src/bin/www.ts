@@ -5,10 +5,10 @@
  */
 
 import app from '../app.js';
-import debugModule from 'debug';
 import http from 'http';
+import getLogger from '../utils/logger.js';
 
-const debug = debugModule('ya-backend-app:server');
+const logger = getLogger('www');
 
 /**
  * Get port from environment and store in Express.
@@ -65,11 +65,11 @@ function onError(error: NodeJS.ErrnoException): void {
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
+      logger.error(bind + ' requires elevated privileges');
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
+      logger.error(bind + ' is already in use');
       process.exit(1);
       break;
     default:
@@ -84,5 +84,5 @@ function onError(error: NodeJS.ErrnoException): void {
 function onListening(): void {
   const addr = server.address();
   const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr?.port;
-  debug('Listening on ' + bind);
+  logger.info('Listening on ' + bind);
 }

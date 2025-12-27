@@ -1,33 +1,45 @@
 import express from 'express';
 import path from 'path';
+import { pinoHttp } from 'pino-http';
+import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import logger from 'morgan';
 
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// 現在你可以像以前一樣使用 __dirname 了
-// 例如：app.use(express.static(path.join(__dirname, 'public')));
-
 import indexRouter from './routes/index.js';
 import usersRouter from './routes/users.js';
+import getLogger from './utils/logger.js';
 
 import type { Request, Response, NextFunction } from 'express';
 
 const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // view engine setup
 app.set('views', path.join(__dirname, '../views'));
 app.set('view engine', 'ejs');
 
-app.use(logger('dev'));
+const logger = getLogger('App');
+
+app.use(
+  pinoHttp({
+    logger,
+    serializers: {
+      req(req) {
+        req.body = req.raw.body;
+        return req;
+      },
+    },
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '../public')));
+app.use(cors());
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
