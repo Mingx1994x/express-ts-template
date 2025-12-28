@@ -3,13 +3,15 @@ import path from 'path';
 import { pinoHttp } from 'pino-http';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
 
+import getLogger from './utils/logger.js';
+import { appError } from './utils/handleError.js';
+
+// routes
 import indexRouter from './routes/index.js';
 import usersRouter from './routes/users.js';
-import getLogger from './utils/logger.js';
 
 import type { Request, Response, NextFunction } from 'express';
 
@@ -46,17 +48,24 @@ app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
-  const err = new Error('Not Found');
-  next(err);
+  next(new appError(404, 'Not Found'));
 });
 
 // error handler
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof appError && err.isOperational) {
+    return res.status(err.status).json({
+      status: 'failed',
+      message: err.message,
+    });
 
-  res.status(err.status || 500);
-  res.render('error');
+    // 非預期錯誤
+  }
+  logger.error(err);
+  res.status(500).json({
+    status: 'error',
+    message: '伺服器錯誤',
+  });
 });
 
 export default app;
