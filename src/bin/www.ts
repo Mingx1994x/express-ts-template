@@ -9,7 +9,7 @@ import http from 'http';
 
 import getLogger from '../utils/logger.js';
 import { normalizePort } from '../utils/handleEnv.js';
-import { getConfig } from '../config/index.js';
+import { configManager } from '../config/index.js';
 
 const logger = getLogger('www');
 
@@ -17,7 +17,7 @@ const logger = getLogger('www');
  * Get port from environment and store in Express.
  */
 
-const port = normalizePort(getConfig('web.port'));
+const port = normalizePort(configManager.web.port);
 app.set('port', port);
 
 /**
