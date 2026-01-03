@@ -14,7 +14,7 @@ router.get('/', function (req: Request, res: Response, next: NextFunction) {
 // router.get('/list', getUsersList);
 
 // 登入
-router.post('/', login);
+router.post('/login', login);
 
 // 登入驗證
 router.post('/check', checkout);
