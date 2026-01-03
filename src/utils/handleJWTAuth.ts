@@ -1,10 +1,11 @@
-import { sign, verify } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { configManager } from '../config/index.js';
 import { appError } from './handleError.js';
 
+import type { UUIDTypes } from 'uuid';
 import type { SignOptions } from 'jsonwebtoken';
 type TAccessPayload = {
-  userId: string;
+  id: UUIDTypes;
   role: 'user' | 'admin';
 };
 
@@ -12,20 +13,20 @@ const JWT_EXPIRES_IN = configManager.jwt.expiresDay;
 const JWT_SECRET = configManager.jwt.secret;
 
 export const generateJwt = (payload: TAccessPayload) =>
-  sign(payload, JWT_SECRET, {
+  jwt.sign(payload, JWT_SECRET, {
     expiresIn: JWT_EXPIRES_IN,
   } as SignOptions);
 
-export const verifyJWT = (token: string): TAccessPayload => {
+export const verifyJwt = (token: string): TAccessPayload => {
   try {
-    const decoded = verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);
 
     if (
       typeof decoded === 'object' &&
       decoded !== null &&
-      'userId' in decoded &&
+      'id' in decoded &&
       'role' in decoded &&
-      typeof decoded.userId === 'string' &&
+      typeof decoded.id === 'string' &&
       (decoded.role === 'user' || decoded.role === 'admin')
     ) {
       return decoded as TAccessPayload;

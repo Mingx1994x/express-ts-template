@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { getUsersList } from '../controllers/user.js';
+import { checkout, login } from '../controllers/user.js';
 
 import type { Request, Response, NextFunction } from 'express';
 const router = express.Router();
@@ -11,6 +11,12 @@ router.get('/', function (req: Request, res: Response, next: NextFunction) {
 });
 
 // 建立測試 userList API
-router.get('/list', getUsersList);
+// router.get('/list', getUsersList);
+
+// 登入
+router.post('/', login);
+
+// 登入驗證
+router.post('/check', checkout);
 
 export default router;
