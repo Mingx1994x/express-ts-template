@@ -18,22 +18,6 @@ export const buildCredentialsFromEnv = (): TCredentialsConfig => {
 };
 
 // auth
-// export const getSheetsClient = (() => {
-//   let cached: ReturnType<typeof google.sheets> | null;
-//   return () => {
-//     if (cached) return cached;
-
-//     const credentials = buildCredentialsFromEnv();
-//     const auth = new google.auth.GoogleAuth({
-//       credentials,
-//       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-//     });
-
-//     cached = google.sheets({ version: 'v4', auth });
-//     return cached;
-//   };
-// })();
-
 let cached: ReturnType<typeof google.sheets> | null = null;
 
 export const initSheetsClient = async () => {

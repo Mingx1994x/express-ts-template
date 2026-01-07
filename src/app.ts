@@ -12,6 +12,7 @@ import { appError } from './utils/handleError.js';
 // routes
 import indexRouter from './routes/index.js';
 import usersRouter from './routes/user.js';
+import categoryRouter from './routes/category.js';
 
 import type { Request, Response, NextFunction } from 'express';
 
@@ -45,6 +46,7 @@ app.use(cors());
 
 app.use('/', indexRouter);
 app.use('/user', usersRouter);
+app.use('/categories', categoryRouter);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
