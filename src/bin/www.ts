@@ -10,6 +10,7 @@ import http from 'http';
 import getLogger from '../utils/logger.js';
 import { normalizePort } from '../utils/handleEnv.js';
 import { configManager } from '../config/index.js';
+import { initSheetsClient } from '../service/getSheetClient.js';
 
 const logger = getLogger('www');
 
@@ -30,9 +31,9 @@ const server = http.createServer(app);
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
+// server.listen(port);
+// server.on('error', onError);
+// server.on('listening', onListening);
 
 /**
  * Event listener for HTTP server "error" event.
@@ -69,3 +70,19 @@ function onListening(): void {
   const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr?.port;
   logger.info('Listening on ' + bind);
 }
+
+async function bootstrap() {
+  try {
+    await initSheetsClient();
+    logger.info('google sheet 連線成功');
+
+    server.listen(port);
+    server.on('error', onError);
+    server.on('listening', onListening);
+  } catch (error) {
+    logger.error(`google sheet 連線失敗:${error}`);
+    process.exit(1);
+  }
+}
+
+bootstrap();
