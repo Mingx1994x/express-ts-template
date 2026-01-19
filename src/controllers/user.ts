@@ -2,12 +2,12 @@ import { v4 as uuid } from 'uuid';
 import bcrypt from 'bcryptjs';
 import { appError } from '../utils/handleError.js';
 import { generateJwt, verifyJwt } from '../utils/handleJWTAuth.js';
-
 import getLogger from '../utils/logger.js';
-const logger = getLogger('App');
 
 import type { Request, Response, NextFunction } from 'express';
 import type { UUIDTypes } from 'uuid';
+
+const logger = getLogger('App');
 
 type TUser = {
   id: UUIDTypes;
@@ -40,19 +40,9 @@ const userList: TUser[] = [
 export const login = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const { email, password } = req.body;
-
-  // 簡易版驗證前端資料 (待調整)
-  if (!email || !password) {
-    return next(new appError(400, '欄位未填寫正確'));
-  }
-
-  // 驗證密碼規則
-  // if (isNotValidUserPassword(password)) {
-  //   return next(new appError(400, '密碼不符合規則，需要包含英文數字大小寫，最短8個字，最長16個字'));
-  // }
 
   // 簡易版資料庫查找用戶是否存在 (待調整)
   const findUser = userList.find((user) => user.email === email);
@@ -91,7 +81,7 @@ export const login = async (
 export const checkout = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   // Authorization: Bearer xxxxxxx.yyyyyyy.zzzzzzz
   // 確認 token 是否存在並取出 token
