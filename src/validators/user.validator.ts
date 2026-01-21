@@ -2,6 +2,7 @@ import { body } from 'express-validator';
 import { requiredValidator } from '../utils/validateUtils.js';
 
 import type { ValidationChain } from 'express-validator';
+import { isExistEmail } from '../service/usersSheet.js';
 
 const validateEmailChain = (): ValidationChain => {
   return body('email')
@@ -29,11 +30,24 @@ const validatePasswordChain = (
     .withMessage(`${label}必填`)
     .bail()
     .matches(passwordRegex)
-    .withMessage(`${label}格式錯誤`);
+    .withMessage(
+      `${label}格式錯誤，長度需 6～12，至少包含 1 個小寫字母、1 個大寫字母、1 個數字`,
+    );
+
+const validateEmailAvailable = () => {
+  return body('email').custom(async (email) => {
+    const isExist = await isExistEmail(email);
+    if (isExist) {
+      throw new Error('信箱已被使用');
+    }
+    return true;
+  });
+};
 
 export const signupValidator: ValidationChain[] = [
   requiredValidator('nickname', '暱稱欄位'),
   validateEmailChain(),
+  validateEmailAvailable(),
   validatePasswordChain(),
 ];
 

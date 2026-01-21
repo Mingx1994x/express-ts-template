@@ -1,42 +1,17 @@
-import { v4 as uuid } from 'uuid';
 import bcrypt from 'bcryptjs';
 import { appError } from '../utils/handleError.js';
 import { generateJwt, verifyJwt } from '../utils/handleJWTAuth.js';
-import getLogger from '../utils/logger.js';
+import {
+  createUser,
+  findExistUserById,
+  findExistUserByMail,
+  getUserRows,
+} from '../service/usersSheet.js';
 
 import type { Request, Response, NextFunction } from 'express';
-import type { UUIDTypes } from 'uuid';
+import type { TCreateUserData, TUser } from '../types/users.js';
 
-const logger = getLogger('App');
-
-type TUser = {
-  id: UUIDTypes;
-  email: string;
-  nickname: string;
-  password?: string;
-  google_id?: string;
-  role: 'user' | 'admin';
-};
-
-// 預設測試帳號
-const userList: TUser[] = [
-  {
-    id: uuid(),
-    email: 'Tony01User@test.com',
-    nickname: 'Tony',
-    password: bcrypt.hashSync('Atest001', 10),
-    role: 'admin',
-  },
-  {
-    id: uuid(),
-    email: 'Vicky_02User@test.com',
-    nickname: 'Vicky',
-    password: bcrypt.hashSync('Btest02', 10),
-    role: 'user',
-  },
-];
-
-// 登入功能 API (測試用)
+// 使用者登入功能 API
 export const login = async (
   req: Request,
   res: Response,
@@ -44,17 +19,17 @@ export const login = async (
 ) => {
   const { email, password } = req.body;
 
-  // 簡易版資料庫查找用戶是否存在 (待調整)
-  const findUser = userList.find((user) => user.email === email);
+  // 資料庫查找用戶是否存在
+  const findUser = await findExistUserByMail(email);
   if (!findUser) {
     return next(new appError(400, '使用者不存在或密碼輸入錯誤'));
   }
 
-  if (!findUser.password) {
+  if (!findUser.password_hash) {
     return next(new appError(400, '此帳號無法使用密碼登入'));
   }
 
-  const isMatch = await bcrypt.compare(password, findUser.password);
+  const isMatch = await bcrypt.compare(password, findUser.password_hash);
   if (!isMatch) {
     return next(new appError(400, '使用者不存在或密碼輸入錯誤'));
   }
@@ -77,7 +52,7 @@ export const login = async (
   });
 };
 
-// 驗證登入狀態功能 API (測試用)
+// 驗證使用者登入狀態功能 API
 export const checkout = async (
   req: Request,
   res: Response,
@@ -100,7 +75,7 @@ export const checkout = async (
   const decoded = await verifyJwt(token);
 
   // 在資料庫尋找對應 id 的使用者
-  const currentUser = userList.find((user) => user.id === decoded.id);
+  const currentUser = await findExistUserById(decoded.id);
 
   if (!currentUser) {
     return next(new appError(401, '無效的 token'));
@@ -115,5 +90,47 @@ export const checkout = async (
         nickname: currentUser.nickname,
       },
     },
+  });
+};
+
+export const signup = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { email, password, nickname } = req.body;
+
+  const salt = await bcrypt.genSalt(10);
+  const password_hash = await bcrypt.hash(password, salt);
+
+  const userData: TCreateUserData = {
+    email,
+    nickname,
+    password_hash,
+  };
+
+  await createUser(userData);
+
+  res.status(201).json({
+    status: 'success',
+    message: '用戶註冊成功',
+    data: {
+      user: {
+        nickname: userData.nickname,
+      },
+    },
+  });
+};
+
+// 取得使用者列表
+export const getUserList = async (
+  _req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  const resData = await getUserRows();
+  res.status(200).json({
+    status: 'success',
+    data: resData,
   });
 };
