@@ -4,10 +4,6 @@ import { appendRow, normalizeRows } from '../utils/normalizeSheets.js';
 
 import type { TSheetsClient } from '../types/sheets.js';
 
-/**
- * Reuse the Google Sheets client so we do not re-authenticate on every request.
- */
-
 const SHEET_ID = configManager.sheets.spreadsheet_id;
 
 type TCategory = {
@@ -68,12 +64,12 @@ export const getCategoryRows = async () => {
     (category) => ({
       ...category,
       id: normalizeCategoryId(category.id),
-    })
+    }),
   );
 
   const hasDefault = categories.some(
     (row) =>
-      normalizeCategoryId(row.id) === normalizeCategoryId(DEFAULT_CATEGORY.id)
+      normalizeCategoryId(row.id) === normalizeCategoryId(DEFAULT_CATEGORY.id),
   );
 
   if (!hasDefault) {
@@ -81,7 +77,7 @@ export const getCategoryRows = async () => {
       sheets,
       CATEGORY_SHEET_RANGE,
       CATEGORY_COLUMNS,
-      DEFAULT_CATEGORY
+      DEFAULT_CATEGORY,
     );
     categories.push({ ...DEFAULT_CATEGORY });
   }
